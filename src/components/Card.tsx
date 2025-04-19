@@ -1,5 +1,5 @@
 import React from "react";
-import Movie from "../Movie.tsx";
+import Movie from "../Interfaces.tsx";
 import star from "../assets/star.svg";
 import noPoster from "../assets/No-Poster.png";
 interface Props {
