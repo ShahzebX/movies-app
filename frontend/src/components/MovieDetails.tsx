@@ -11,6 +11,7 @@ interface Genre {
 
 interface MovieDetails {
   runtime: number;
+  genres?: { id: number; name: string }[];
   // Add other properties as needed
 }
 
@@ -120,9 +121,10 @@ const MovieDetails = () => {
     ? new Date(movie.release_date).getFullYear()
     : "N/A";
 
-  const movieGenres = genres.filter((genre) =>
-    movie.genre_ids?.includes(genre.id)
-  );
+  const movieGenres =
+    movieDetails && movieDetails.genres
+      ? movieDetails.genres
+      : genres.filter((genre) => movie.genre_ids?.includes(genre.id));
 
   const handleWatchTrailer = async () => {
     setIsLoadingTrailer(true);
@@ -261,6 +263,7 @@ const MovieDetails = () => {
                   <button
                     onClick={handleWatchTrailer}
                     className="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-6 rounded-lg transition-colors duration-200 flex items-center justify-center w-full md:w-auto"
+                    style={{ maxWidth: 900 }}
                   >
                     {isLoadingTrailer ? (
                       <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
@@ -269,29 +272,29 @@ const MovieDetails = () => {
                     )}
                   </button>
                 </div>
-
-                {showTrailer && (
-                  <div className="mb-6">
-                    <div className="aspect-video">
-                      {trailerKey ? (
-                        <iframe
-                          className="w-full h-full rounded-lg"
-                          src={`https://www.youtube.com/embed/${trailerKey}`}
-                          title="Movie Trailer"
-                          frameBorder="0"
-                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                          allowFullScreen
-                        ></iframe>
-                      ) : (
-                        <div className="text-center text-gray-300 py-8">
-                          No trailer available for this movie.
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
               </div>
             </div>
+            {/* Watch Trailer section (player only) */}
+            {showTrailer && trailerKey && (
+              <div
+                className="aspect-video w-full max-w-4xl mx-auto mb-6"
+                style={{ minHeight: 300 }}
+              >
+                <iframe
+                  className="w-full h-full rounded-lg"
+                  src={`https://www.youtube.com/embed/${trailerKey}?autoplay=1`}
+                  title="Movie Trailer"
+                  frameBorder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                ></iframe>
+              </div>
+            )}
+            {showTrailer && !trailerKey && (
+              <div className="text-center text-gray-300 py-8 w-full max-w-4xl mx-auto mb-6">
+                No trailer available for this movie.
+              </div>
+            )}
             {relatedMovies.length > 0 && (
               <div className="mt-12">
                 <h2 className="text-2xl font-semibold mb-6">

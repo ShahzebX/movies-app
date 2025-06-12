@@ -48,7 +48,9 @@ const Card = ({ movie, onCardClick }: Props) => {
             alt="star-img"
             style={{ width: 18, height: 18 }}
           />
-          <span>{vote_average ? vote_average.toFixed(1) : "N/A"}</span>
+          <span className="lang">
+            {vote_average ? vote_average.toFixed(1) : "N/A"}
+          </span>
           <span>•</span>
           <span className="lang">
             {original_language
