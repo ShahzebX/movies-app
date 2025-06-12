@@ -38,15 +38,26 @@ const Card = ({ movie, onCardClick }: Props) => {
       <div className="mt-4">
         <h3>{title}</h3>
 
-        <div className="content">
-          <div className="rating">
-            <img src={star} alt="star-img" />
-            <p>{vote_average ? vote_average.toFixed(1) : "N/A"}</p>
-          </div>
+        <div
+          className="content"
+          style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}
+        >
+          <img
+            className="mb-1"
+            src={star}
+            alt="star-img"
+            style={{ width: 18, height: 18 }}
+          />
+          <span>{vote_average ? vote_average.toFixed(1) : "N/A"}</span>
           <span>•</span>
-          <p className="lang">{original_language}</p>
+          <span className="lang">
+            {original_language
+              ? original_language.charAt(0).toUpperCase() +
+                original_language.slice(1)
+              : ""}
+          </span>
           <span>•</span>
-          <p className="year">{year}</p>
+          <span className="year">{year}</span>
         </div>
       </div>
     </div>

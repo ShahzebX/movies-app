@@ -1,3 +1,9 @@
+interface Video {
+  key: string;
+  type: string;
+  site: string;
+}
+
 interface Movie {
   id: number;
   title: string;
@@ -9,5 +15,9 @@ interface Movie {
   runtime: number;
   overview: string;
   genre_ids: number[];
+  videos?: {
+    results: Video[];
+  };
 }
+
 export default Movie;
