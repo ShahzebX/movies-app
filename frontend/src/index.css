@@ -143,6 +143,34 @@
       @apply text-gray-100 font-medium text-base;
     }
   }
+
+  .bg-dark-100 {
+    background: linear-gradient(
+      120deg,
+      rgba(30, 41, 59, 0.98) 60%,
+      rgba(54, 28, 74, 0.92) 100%,
+      rgba(15, 23, 42, 0.98) 100%
+    ) !important;
+    backdrop-filter: blur(2px);
+  }
+
+  select.bg-dark-100 {
+    background: rgba(54, 28, 74, 0.7);
+    backdrop-filter: blur(8px);
+    border: 1.5px solid #a259f7;
+    color: #fff;
+    box-shadow: 0 4px 24px 0 rgba(162, 89, 247, 0.12);
+    transition: border 0.2s, box-shadow 0.2s;
+  }
+  select.bg-dark-100:focus {
+    outline: none;
+    border: 2px solid #a259f7;
+    box-shadow: 0 0 0 2px #a259f7, 0 4px 24px 0 rgba(162, 89, 247, 0.12);
+  }
+  select.bg-dark-100 option {
+    background: rgba(54, 28, 74, 0.95);
+    color: #fff;
+  }
 }
 
 @utility text-gradient {

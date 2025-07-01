@@ -13,15 +13,18 @@ const Card = ({ movie, onCardClick }: Props) => {
     movie;
   const IMAGE_BASE_URL = "https://image.tmdb.org/t/p/w500";
   let year = "N/A";
-
-  if (release_date) {
+  if (release_date || movie.first_air_date) {
     try {
-      const dateObject = new Date(release_date);
+      const dateObject = new Date(release_date || movie.first_air_date || "");
       if (!isNaN(dateObject.getTime())) {
         year = dateObject.getFullYear().toString();
       }
     } catch (error) {
-      console.error("Error parsing date:", release_date, error);
+      console.error(
+        "Error parsing date:",
+        release_date || movie.first_air_date,
+        error
+      );
     }
   }
 
@@ -32,11 +35,12 @@ const Card = ({ movie, onCardClick }: Props) => {
     >
       <img
         src={poster_path ? `${IMAGE_BASE_URL}${poster_path}` : noPoster}
-        alt={title}
+        alt={title || movie.name}
+        className="w-full h-100 object-fill rounded-lg shadow-md shadow-gray-800"
       />
 
       <div className="mt-4">
-        <h3>{title}</h3>
+        <h3>{title || movie.name}</h3>
 
         <div
           className="content"
@@ -59,7 +63,7 @@ const Card = ({ movie, onCardClick }: Props) => {
               : ""}
           </span>
           <span>•</span>
-          <span className="year">{year}</span>
+          <p className="year">{year}</p>
         </div>
       </div>
     </div>

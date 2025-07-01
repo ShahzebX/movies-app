@@ -10,14 +10,15 @@ interface Genre {
 }
 
 interface MovieDetails {
-  runtime: number;
+  runtime?: number;
+  episode_run_time?: number[];
   genres?: { id: number; name: string }[];
   // Add other properties as needed
 }
 
 const MovieDetails = () => {
   const navigate = useNavigate();
-  const { id } = useParams();
+  const { id, type } = useParams();
   const IMAGE_BASE_URL = "https://image.tmdb.org/t/p/w500";
   const [genres, setGenres] = useState<Genre[]>([]);
   const [relatedMovies, setRelatedMovies] = useState<Movie[]>([]);
@@ -39,74 +40,75 @@ const MovieDetails = () => {
   const [trailerKey, setTrailerKey] = useState<string | null>(null);
   const [showTrailer, setShowTrailer] = useState(false);
 
-  // Fetch movie details by id from URL
+  // Fetch details by id and type from URL
   useEffect(() => {
-    if (!id) return;
-    const fetchMovie = async () => {
+    if (!id || !type) return;
+    const fetchMedia = async () => {
       try {
         const response = await fetch(
-          `https://api.themoviedb.org/3/movie/${id}`,
+          `https://api.themoviedb.org/3/${type}/${id}`,
           { ...API_OPTIONS }
         );
-        if (!response.ok) throw new Error("Failed to fetch movie details");
+        if (!response.ok) throw new Error("Failed to fetch details");
         const data = await response.json();
         setMovie(data);
         setMovieDetails(data);
       } catch (error) {
         setMovie(null);
         setMovieDetails(null);
-        console.error("Error fetching movie details:", error);
+        console.error("Error fetching details:", error);
       }
     };
-    fetchMovie();
-  }, [id, API_OPTIONS]);
+    fetchMedia();
+  }, [id, type, API_OPTIONS]);
 
+  // Fetch genres by type
   useEffect(() => {
+    if (!type) return;
     const fetchGenres = async () => {
       try {
         const response = await fetch(
-          `https://api.themoviedb.org/3/genre/movie/list`,
+          `https://api.themoviedb.org/3/genre/${type}/list`,
           { ...API_OPTIONS }
         );
-        if (!response.ok) {
-          throw new Error("Failed to fetch genres");
-        }
+        if (!response.ok) throw new Error("Failed to fetch genres");
         const data = await response.json();
         setGenres(data.genres || []);
       } catch (error) {
+        setGenres([]);
         console.error("Error fetching genres:", error);
       }
     };
-
     fetchGenres();
-  }, [API_OPTIONS]);
+  }, [type, API_OPTIONS]);
 
+  // Fetch related by type
   useEffect(() => {
-    if (!id) return;
-    const fetchRelatedMovies = async () => {
+    if (!id || !type) return;
+    const fetchRelated = async () => {
       try {
         const response = await fetch(
-          `https://api.themoviedb.org/3/movie/${id}/similar`,
+          `https://api.themoviedb.org/3/${type}/${id}/similar`,
           { ...API_OPTIONS }
         );
-        if (!response.ok) {
-          throw new Error("Failed to fetch related movies");
-        }
+        if (!response.ok) throw new Error("Failed to fetch related");
         const data = await response.json();
-        setRelatedMovies(data.results.slice(0, 10) || []);
+        setRelatedMovies(data.results?.slice(0, 10) || []);
       } catch (error) {
-        console.error("Error fetching related movies:", error);
+        setRelatedMovies([]);
+        console.error("Error fetching related:", error);
       }
     };
-    fetchRelatedMovies();
-  }, [id, API_OPTIONS]);
+    fetchRelated();
+  }, [id, type, API_OPTIONS]);
 
   const handleBack = () => {
     navigate(-1);
   };
 
-  const handleMovieClick = (movieId: number) => {
-    navigate(`/movie/${movieId}`);
+  const handleMovieClick = (mediaId: number) => {
+    if (!type) return;
+    navigate(`/media/${type}/${mediaId}`);
   };
 
   if (!movie) {
@@ -117,8 +119,10 @@ const MovieDetails = () => {
     );
   }
 
-  const year = movie.release_date
+  const year = movie?.release_date
     ? new Date(movie.release_date).getFullYear()
+    : movie?.first_air_date
+    ? new Date(movie.first_air_date).getFullYear()
     : "N/A";
 
   const movieGenres =
@@ -132,7 +136,7 @@ const MovieDetails = () => {
     setTrailerKey(null);
     try {
       const response = await fetch(
-        `https://api.themoviedb.org/3/movie/${movie.id}/videos`,
+        `https://api.themoviedb.org/3/${type}/${movie?.id}/videos`,
         API_OPTIONS
       );
       if (!response.ok) {
@@ -173,11 +177,12 @@ const MovieDetails = () => {
         <div className="bg-dark-100 rounded-2xl p-8 relative z-10">
           <button
             onClick={handleBack}
-            className="mb-6 flex items-center gap-2 text-gray-300 hover:text-white transition-colors"
+            className="mb-6 flex items-center justify-center w-10 h-10 rounded-full text-gray-300 hover:text-white hover:bg-dark-200 transition-colors focus:outline-none focus:ring-2 focus:ring-red-400 hover:scale-105 transition-transform duration-200"
+            title="Back"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5"
+              className="h-7 w-7"
               viewBox="0 0 20 20"
               fill="currentColor"
             >
@@ -187,7 +192,6 @@ const MovieDetails = () => {
                 clipRule="evenodd"
               />
             </svg>
-            Back
           </button>
 
           <div className="max-w-6xl mx-auto">
@@ -205,8 +209,11 @@ const MovieDetails = () => {
               </div>
 
               <div className="md:w-2/3">
-                <h1 className="text-4xl font-bold mb-4">{movie.title}</h1>
+                <h1 className="text-4xl font-bold mb-4">
+                  {movie.title || movie.name}
+                </h1>
 
+                {/* Year and Genres Row */}
                 <div className="flex items-center gap-2 mb-6">
                   <div className="rating flex items-center gap-1">
                     <img src={star} alt="star" className="w-5 h-5 mb-1" />
@@ -225,6 +232,7 @@ const MovieDetails = () => {
                   <p className="year text-gray-300">{year}</p>
                 </div>
 
+                {/* Overview */}
                 <div className="mb-6">
                   <h2 className="text-2xl font-semibold mb-3">Overview</h2>
                   <p className="text-gray-300 leading-relaxed">
@@ -253,8 +261,13 @@ const MovieDetails = () => {
                 <div className="mb-6">
                   <h2 className="text-2xl font-semibold mb-3">Runtime</h2>
                   <p className="text-gray-300">
-                    {movieDetails?.runtime
+                    {typeof movieDetails?.runtime === "number" &&
+                    movieDetails.runtime > 0
                       ? formatRuntime(movieDetails.runtime)
+                      : Array.isArray(movieDetails?.episode_run_time) &&
+                        movieDetails.episode_run_time.length > 0 &&
+                        typeof movieDetails.episode_run_time[0] === "number"
+                      ? formatRuntime(movieDetails.episode_run_time[0])
                       : "N/A"}
                   </p>
                 </div>
@@ -277,7 +290,7 @@ const MovieDetails = () => {
             {/* Watch Trailer section (player only) */}
             {showTrailer && trailerKey && (
               <div
-                className="aspect-video w-full max-w-4xl mx-auto mb-6"
+                className="rounded aspect-video w-full max-w-5xl mx-auto my-6"
                 style={{ minHeight: 300 }}
               >
                 <iframe
@@ -326,7 +339,7 @@ const MovieDetails = () => {
                         </div>
                         <div className="mt-3">
                           <h3 className="font-semibold line-clamp-1 group-hover:text-red-500 transition-colors text-white">
-                            {relatedMovie.title}
+                            {relatedMovie.title || relatedMovie.name}
                           </h3>
                           <div className="flex items-center gap-2 mt-1 text-sm text-gray-300">
                             <div className="flex items-center gap-1">
@@ -341,7 +354,11 @@ const MovieDetails = () => {
                                 ? new Date(
                                     relatedMovie.release_date
                                   ).getFullYear()
-                                : "N/A"}
+                                : relatedMovie.first_air_date
+                                ? new Date(
+                                    relatedMovie.first_air_date
+                                  ).getFullYear()
+                                : "Unknown"}
                             </span>
                           </div>
                         </div>
