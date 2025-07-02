@@ -3,12 +3,12 @@ import Movie from "../Interfaces.tsx";
 import star from "../assets/star.svg";
 import noPoster from "../assets/No-Poster.png";
 
-interface Props {
+interface CardProps {
   movie: Movie;
   onCardClick: (movie: Movie) => void;
 }
 
-const Card = ({ movie, onCardClick }: Props) => {
+const Card: React.FC<CardProps> = ({ movie, onCardClick }) => {
   const { title, poster_path, release_date, vote_average, original_language } =
     movie;
   const IMAGE_BASE_URL = "https://image.tmdb.org/t/p/w500";
@@ -30,7 +30,7 @@ const Card = ({ movie, onCardClick }: Props) => {
 
   return (
     <div
-      className="movie-card cursor-pointer hover:scale-105 transition-transform duration-200"
+      className="movie-card relative group cursor-pointer"
       onClick={() => onCardClick(movie)}
     >
       <img

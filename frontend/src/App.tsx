@@ -4,7 +4,6 @@ import Spinner from "./components/Spinner";
 import Card from "./components/Card";
 import MovieDetails from "./components/MovieDetails";
 import Movie from "./Interfaces";
-import { Models } from "appwrite";
 import { useDebounce } from "react-use";
 import {
   Routes,
@@ -14,10 +13,8 @@ import {
   Navigate,
 } from "react-router-dom";
 import "./index.css";
-import { getTrendingMovies, updateSearchCount } from "./appwrite";
+import { updateSearchCount } from "./appwrite";
 import AuthForm from "./components/AuthForm";
-
-// import heroImg from "./assets/hero-img.png";
 
 const API_BASE_URL = "https://api.themoviedb.org/3";
 const API_KEY = import.meta.env.VITE_TMDB_API_KEY;
@@ -33,14 +30,18 @@ const API_OPTIONS = {
   headers: { accept: "application/json", Authorization: `Bearer ${API_KEY}` },
 };
 
-const fetchMovieDetails = async (movieId: number): Promise<Movie> => {
-  const response = await fetch(`${API_BASE_URL}/movie/${movieId}`, API_OPTIONS);
+const fetchMovieDetails = async (
+  movieId: number,
+  type: "movie" | "tv" = "movie"
+): Promise<Movie> => {
+  const response = await fetch(
+    `${API_BASE_URL}/${type}/${movieId}`,
+    API_OPTIONS
+  );
 
   if (!response.ok) {
     const errorData = await response.json();
-    throw new Error(
-      errorData.status_message || `Error fetching movie details...`
-    );
+    throw new Error(errorData.status_message || `Error fetching details...`);
   }
 
   return response.json();
@@ -48,14 +49,14 @@ const fetchMovieDetails = async (movieId: number): Promise<Movie> => {
 
 const App = () => {
   const navigate = useNavigate();
-  const { id } = useParams();
+  const { id, type } = useParams();
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
   const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
   const [movies, setMovies] = useState<Movie[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState("");
-  const [trendingMovies, setTrendingMovies] = useState<Models.Document[]>([]);
+  const [trendingMovies, setTrendingMovies] = useState<any[]>([]);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -113,8 +114,6 @@ const App = () => {
   };
   useEffect(() => {
     fetchData(debouncedSearchQuery, currentPage, mediaType);
-    // Reset to first page when filters change
-    // (currentPage is already set to 1 in the onChange handlers)
   }, [
     debouncedSearchQuery,
     currentPage,
@@ -142,31 +141,20 @@ const App = () => {
     fetchTrendingMovies(mediaType);
   }, [mediaType]);
 
-  const handleTrendingClick = async (trending: Models.Document) => {
-    try {
-      const movieId = Number(trending.movie_id);
-      if (!movieId) return;
-      const movieDetails = await fetchMovieDetails(movieId);
-      setSelectedMovie(movieDetails);
-    } catch (err) {
-      console.log(`Failed to load movie details. ${err}`);
-    }
-  };
-
   const handleCardClick = (movie: Movie) => {
     setSelectedMovie(movie);
     const type = movie.title ? "movie" : "tv";
     navigate(`/media/${type}/${movie.id}`);
   };
 
-  // Suggestion 4: Fetch movie details by ID if on /movie/:id and selectedMovie is null
+  // Fetch movie/tv details by ID if on /media/:type/:id and selectedMovie is null
   useEffect(() => {
-    if (id && !selectedMovie) {
-      fetchMovieDetails(Number(id))
+    if (id && type && !selectedMovie) {
+      fetchMovieDetails(Number(id), type as "movie" | "tv")
         .then(setSelectedMovie)
-        .catch(() => setErrorMsg("Failed to load movie details."));
+        .catch(() => setErrorMsg("Failed to load details."));
     }
-  }, [id, selectedMovie]);
+  }, [id, type, selectedMovie]);
 
   // Fetch genres when mediaType changes
   useEffect(() => {
@@ -243,7 +231,7 @@ const App = () => {
                         const type = movie.title ? "movie" : "tv";
                         return (
                           <li
-                            key={movie.id || movie.$id}
+                            key={movie.id}
                             className="transition-transform duration-200 cursor-pointer hover:scale-105 hover:shadow-lg"
                             onClick={() =>
                               navigate(`/media/${type}/${movie.id}`)

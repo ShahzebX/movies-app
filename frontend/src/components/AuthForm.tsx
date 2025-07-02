@@ -51,9 +51,11 @@ const AuthForm: React.FC<AuthFormProps> = ({ onAuthSuccess }) => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-primary">
+    <div className="min-h-screen flex items-center justify-center bg-primary relative">
+      {/* Background image pattern, same as main section */}
+      <div className="pattern absolute inset-0 z-0" />
       <Toaster position="top-center" richColors />
-      <div className="bg-dark-100 rounded-2xl shadow-lg p-8 w-full max-w-md">
+      <div className="bg-dark-100 rounded-2xl shadow-lg p-8 w-full max-w-md z-10 relative">
         <h2 className="text-3xl font-bold text-white mb-6 text-center">
           {isLogin ? "Login" : "Sign Up"}
         </h2>
@@ -62,7 +64,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ onAuthSuccess }) => {
             <input
               type="text"
               placeholder="Name"
-              className="w-full px-4 py-2 rounded-lg bg-gray-800 text-white"
+              className="w-full px-4 py-2 rounded-lg bg-gray-600 text-white"
               value={name}
               onChange={(e) => setName(e.target.value)}
               required
@@ -71,7 +73,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ onAuthSuccess }) => {
           <input
             type="email"
             placeholder="Email"
-            className="w-full px-4 py-2 rounded-lg bg-gray-800 text-white"
+            className="w-full px-4 py-2 rounded-lg bg-gray-600 text-white"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
@@ -79,7 +81,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ onAuthSuccess }) => {
           <input
             type="password"
             placeholder="Password"
-            className="w-full px-4 py-2 rounded-lg bg-gray-800 text-white"
+            className="w-full px-4 py-2 rounded-lg bg-gray-600 text-white"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
