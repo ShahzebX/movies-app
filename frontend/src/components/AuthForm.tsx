@@ -6,21 +6,47 @@ interface AuthFormProps {
   onAuthSuccess: () => void;
 }
 
+const API_BASE_URL = "http://localhost:5000/api/auth";
+
 const AuthForm: React.FC<AuthFormProps> = ({ onAuthSuccess }) => {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState(""); // Only for signup
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (isLogin) {
-      onAuthSuccess();
-      navigate("/");
-    } else {
-      toast.success("Sign up successful! Please log in now.");
-      setIsLogin(true);
+    setLoading(true);
+    try {
+      if (isLogin) {
+        const res = await fetch(`${API_BASE_URL}/login`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.message || "Login failed");
+        localStorage.setItem("token", data.token);
+        toast.success("Login successful!");
+        onAuthSuccess();
+        navigate("/");
+      } else {
+        const res = await fetch(`${API_BASE_URL}/register`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username: name, email, password }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.message || "Sign up failed");
+        toast.success("Sign up successful! Please log in now.");
+        setIsLogin(true);
+      }
+    } catch (err: any) {
+      toast.error(err.message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -61,14 +87,22 @@ const AuthForm: React.FC<AuthFormProps> = ({ onAuthSuccess }) => {
           <button
             type="submit"
             className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2 rounded-lg transition-colors"
+            disabled={loading}
           >
-            {isLogin ? "Login" : "Sign Up"}
+            {loading
+              ? isLogin
+                ? "Logging in..."
+                : "Signing up..."
+              : isLogin
+              ? "Login"
+              : "Sign Up"}
           </button>
         </form>
         <div className="mt-6 text-center">
           <button
             className="text-light-100 underline cursor-pointer"
             onClick={() => setIsLogin((prev) => !prev)}
+            type="button"
           >
             {isLogin
               ? "Don't have an account? Sign Up"
